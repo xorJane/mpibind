@@ -680,7 +680,7 @@ to see how many hardware threads there are on the same node.
 
 For contrast, repeat the above using the file `tioga.xml`. 
 
-How many hardware threads are there per node on Tioga and RZAdams?
+How many hardware threads are there per node on RZAdams and Tioga?
 
 **A)** 192 & 128
 

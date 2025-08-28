@@ -444,6 +444,9 @@ Machine (503GB total)
 
 </details>
 
+In this text output, **hierarchy is shown by indentation**. For example, under line 5 of the output, `L3 L#0 (32MB)`, there are 8 indented lines describing L2 caches and cores, starting with `L2 L#0 (512KB) + L1d L#0 (32KB) + L1i L#0 (32KB) + Core L#0`. These 8 cores and 8 L2 caches are all local to the `L3 L#0` cache.
+
+Similarly, each line for L2 cache has two indented lines starting with `PU` beneath it. These are the hardware threads local to each L2 cache.
 
 ### Using synthetic topologies 
 
@@ -751,7 +754,7 @@ do support SMT!
 </details>
 
 
-## Calculating CPU masks
+## Introducing hwloc-calc
 
 Another tool provided by `hwloc` is `hwloc-calc`, which allows you to create CPU masks. (In case this is an unfamiliar term -- this is basically a hexadecimal string that can be interpreted as a list identifying particular CPUs.) These masks can then be used as inputs to another `hwloc` function, `hwloc-bind`, as we'll see below.
 
@@ -776,6 +779,71 @@ janeh@tioga20:~$ hwloc-calc NUMAnode:0.core:8 --intersect PU --physical
 8,72
 ```
 
+#### Hands-on exercise E: Use `hwloc-calc` to see cores on your AWS cluster
+
+We mentioned before that we have special nodes in the "queue" accessible with `srun` commands. These are our "compute" nodes, which are more powerful than the "login" node you land on when you first `ssh` to the AWS cluster. By running `hwloc` commands like `lstopo` and `hwloc-calc` on the login node, you can see how the architecture of the login node differs from the architeture of the compute node.
+
+For example, let's use `hwloc-calc` to see how many cores live on a single `NUMAnode` (also known as a  "NUMA domain") of the login node. Try this:
+
+```
+hwloc-calc NUMAnode:0 --intersect core
+```
+
+The output you get shows the full list of cores on NUMA domain `0` of the login.
+
+Next, use `hwloc0calc` to see how many cores live on a single NUMA domain of a compute node:
+
+```
+srun -t1 NUMAnode:0 --intersect core
+```
+
+<details>
+<summary>
+
+What differences do you see in the architecture of the login and the compute nodes from this output?
+
+
+</summary>
+
+We see more cores per NUMA domain on the compute node than on the login node: on the login node we see 16 cores per NUMA and, on the compute node, we see 24 nodes per NUMA. 
+
+```
+[username2@ip-10-0-0-25 ~]$ hwloc-calc NUMAnode:0 --intersect core
+0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15
+[username2@ip-10-0-0-25 ~]$ srun -t 1 hwloc-calc NUMAnode:0 --intersect core
+0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23
+```
+
+</details>
+
+Finally, inspect the second NUMA domain (#1) on the login and compute nodes by running `NUMAnode:1 --intersect core` on each:
+
+```
+hwloc-calc NUMAnode:1 --intersect core
+srun -t1 hwloc-calc NUMAnode:1 --intersect core
+```
+
+<details>
+<summary>
+
+What do you think the ouput of (or errors from) these commands tell you about the architecture of the nodes on our AWS cluster?
+
+</summary>
+
+```
+[username2@ip-10-0-0-25 ~]$ hwloc-calc NUMAnode:1 --intersect core
+object #1 depth -3 below cpuset 0xffffffff nodeset 0x00000001 does not exist
+failed to use any single object in index range 1
+
+[username2@ip-10-0-0-25 ~]$ srun -t1 hwloc-calc NUMAnode:1 --intersect core
+24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47
+```
+
+On the login node, we get an error; on the compute node, we see another 24 cores per NUMA. The error on the login node indicates the second NUMAnode doesn't exist: login nodes on this cluster only have a single NUMA with 16 cores each (16 cores per node). Compute nodes have two NUMAs with 24 cores each (48 cores per node).
+
+</details>
+
+## Calculating CPU masks
 
 If we drop the `--intersect` flag and instead simply run `hwloc-calc <compute resource>:<index>.<compute resource>.<index>`, we'll get a CPU mask in hexadecimal:
 
@@ -822,7 +890,7 @@ janeh@tioga22:~$ hwloc-calc NUMAnode:0 --taskset
 
 The default mask format is specific to `hwloc`, whereas `--taskset` displays the mask in the format recognized by the taskset command-line program (an alternative command line tool for binding).
 
-#### Hands-on exercise E: Determine the PUs associated with a given core
+#### Hands-on exercise F: Determine the PUs associated with a given core
 
 Using `hwloc-calc` with the flag `-i` to specify an input file, determine the PUs associated with core 4 on the second NUMA domain of a `RZAdams` node.
 
@@ -921,7 +989,7 @@ hwloc-bind NUMAnode:1 --membind NUMAnode:0 -- sh
 
 specifies that the task created by `sh` should be run on the compute resources of the 2nd NUMA domain, whereas it should use memory from the resources on the first NUMA domain.
 
-#### Hands-on exercise F: Determine the compute resources associated with a given task
+#### Hands-on exercise G: Determine the compute resources associated with a given task
 
 To *which cores* was the last task bound with `hwloc-bind`? Determine how we can specify cores to replace `<complete this with keyword args>` in the following:
 
@@ -968,7 +1036,7 @@ janeh@rzadams1005:~$ hwloc-bind --get
 
 </details>
 
-#### Hands-on exercise G: On AWS, get the compute resources for a given task
+#### Hands-on exercise H: On AWS, get the compute resources for a given task
 
 On your AWS instance, run
 

@@ -481,7 +481,7 @@ rzadams.xml
 Using these files, you should be able to create the outputs for `lstopo-no-graphics` that you'd see on these respective machines, simply by adding `--input <machine name>.xml` to the commands shown above; as an example, 
 
 ```
-lstopo-no-graphics --input /home/tutorial/topo-xml/rzadams.xml
+lstopo --input /home/tutorial/topo-xml/rzadams.xml
 ```
 
 should allow you to "see" `RZAdams`'s MI300A architecture, without needing access to `RZAdams` itself.

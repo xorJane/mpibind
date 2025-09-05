@@ -19,8 +19,8 @@ Lawrence Livermore National Laboratory
    1. [Example mappings](#example-mappings)
    1. [Reporting affinity](#reporting-affinity)
    1. [Extra exercises](#extra-exercises)
-   1. [References](#references)
-1.[Mapping applications to the hardware](module3.md)
+   1. [References](#references) 
+1. [Mapping applications to the hardware](module3.md)
 
 
 
@@ -444,6 +444,25 @@ Machine (503GB total)
 
 </details>
 
+#### Hands-on exercise A: `lstopo` vs. `lstopo-no-graphics`
+
+When graphics are enabled, `lstopo` creates images and `lstopo-no-graphics` shows text outputs.
+
+On systems where graphics aren't enabled -- like the AWS clusters where we're working today -- they both provide text output.
+
+Try running
+
+```
+lstopo
+```
+
+and
+
+```
+lstopo-no-graphics
+```
+
+From here on out, we'll stick with `lstopo` on our AWS instances!
 
 ### Using synthetic topologies 
 
@@ -469,9 +488,9 @@ should allow you to "see" `RZAdams`'s MI300A architecture, without needing acces
 
 In another environment, `lstopo` would allow you to re-create the images shown above, but we only have the text-output version of this function working on AWS. For that reason, `lstopo` defaults to `lstopo-no-graphics` for this tutorial.
 
-#### Hands-on exercise A: Experimenting with `lstopo`
+#### Hands-on exercise B: Experimenting with `lstopo`
 
-By default, `lstopo` and `lstopo-no-graphics` show the topology of the machine you're logged into. Alternatively, you can pass an `.xml` file describing the topology of a *different* machine to see the topology of that machine.
+By default, `lstopo` shows the topology of the machine you're logged into. Alternatively, you can pass an `.xml` file describing the topology of a *different* machine to see the topology of that machine.
 
 From your AWS desktop, try the following:
 
@@ -479,30 +498,26 @@ From your AWS desktop, try the following:
 lstopo --input /home/tutorial/topo-xml/rzadams.xml
 ```
 
-and then try:
+See how this changes the outpput you get simply running `lstopo`!
 
-```
-lstopo-no-graphics -i /home/tutorial/topo-xml/rzadams.xml
-```
+#### Hands-on exercise C: Investigating AWS nodes with `lstopo`
 
-These should give the same result!
-
-#### Hands-on exercise B: Investigating AWS nodes with `lstopo`
-
-Let's use `lstopo` to show the topology of the nodes we can see through AWS. First, try running
+Let's use `lstopo` again to show the topology of the nodes we can see through AWS. First, try running
 
 
 ```
 lstopo
 ```
 
-The node you see immediately after logging in doesn't have the most interesting topology, but the nodes waiting for you in the "queue" have more features. To see the topology of one of these nodes, use the following command:
+When you run `lstopo`, you're investigating the hardware of the "login node" -- the node you see immediately after logging in. The login node here doesn't have the most interesting topology, but we have a second type of node, with different hardware, waiting for you in the "queue". To see the topology of one of these nodes, use the following command:
 
 ```
-srun -t1 lstopo
+srun lstopo
 ```
 
-Identify at least one way the features of the node described by `lstopo`'s output differ from those described by `srun -t1 lstopo`.
+When you preceded a command with `srun`, you're choosing to grab one of the nodes from the queue -- which are normally more powerful -- to run your command.
+
+The output from `srun lstopo` should be different than `lstopo` because the nodes have different hardware. Identify at least one way the features of the node described by `lstopo`'s output differ from those described by `srun lstopo`.
 
 ### Customizing `lstopo` output
 
@@ -652,35 +667,90 @@ janeh@tioga20:~$ lstopo --no-useless-caches --no-io --physical
 
 <img src="../figures/tioga/tioga-no-cache-io-physical.png" width="750"/>
 
+#### Hands-on exercise D: Investigating AWS nodes with `--only`
 
-
-#### Hands on Exercise C: Experimenting with `--only`
-
-Run
+First, run the command
 
 ```
-lstopo-no-graphics  --input /home/tutorial/topo-xml/rzadams.xml --only core
+lstopo --only core
+```
+
+to see the number of cores on the login node and
+
+```
+srun lstopo --only core
+```
+
+to see the number of cores on the compute nodes in our queue.
+
+How are the outputs different? Which type of node has more cores?
+
+#### Hands-on exercise E: Investigating AWS nodes: How many PUs per core?
+
+You can add `| wc -l` to a command to count the number of lines in its output. Modifying the commands from the last exercise, you should get a single number if you try `lstopo --only core | wc -l` and `srun lstopo --only core | wc -l`. Here you're counting the number of cores (one per line) on each node!
+
+Determine the number of cores and PUs (hardware threads) on an AWS compute node by running the following:
+
+```
+srun lstopo --only core | wc -l
 ```
 
 and
 
 ```
-lstopo-no-graphics  --input /home/tutorial/topo-xml/rzadams.xml --only core | wc -l
+srun lstopo --only PU | wc -l
 ```
 
-to see the first the full list of cores on `RZAdams`'s nodes and then to tally them.
+How many hardware threads exist per core? Do these nodes support Simultaneous Multi-Threading (SMT)? (In other words, are there multiple PUs for every core?)
+
+<details>
+<summary>
+
+Answer
+
+</summary>
+
+```
+[username2@ip-10-0-0-11 ~]$ srun lstopo --only core | wc -l
+48
+[username2@ip-10-0-0-11 ~]$ srun lstopo --only PU | wc -l
+96
+
+We have 48 cores and 96 PUs. Because we have 2x as many PUs as cores, these nodes
+do support SMT!
+
+```
+
+</details>
+
+
+#### Hands on Exercise F: Experimenting with `--only` on synthetic topologies
+
+Run
+
+```
+lstopo  --input /home/tutorial/topo-xml/rzadams.xml --only core
+```
+
+and
+
+```
+lstopo  --input /home/tutorial/topo-xml/rzadams.xml --only core | wc -l
+```
+
+to see the full list of cores on `RZAdams`'s nodes and then to tally them.
 
 Now try
 
 ```
-lstopo-no-graphics  --input /home/tutorial/topo-xml/rzadams.xml --only PU | wc -l
+lstopo  --input /home/tutorial/topo-xml/rzadams.xml --only PU | wc -l
 ```
 
 to see how many hardware threads there are on the same node. 
 
 For contrast, repeat the above using the file `tioga.xml`. 
 
-How many hardware threads are there per node on Tioga and RZAdams?
+How many hardware threads are there per node on RZAdams and Tioga?
 
 **A)** 192 & 128
 
@@ -702,7 +772,7 @@ janeh@rzadams1005:~$ lstopo-no-graphics --only PU | wc -l
 192
 ```
 
-The same is true on Tioga, but there are only 64
+The same is true on Tioga, but there are only 64 cores and 128 hardware threads
 
 ```
 janeh@tioga20:~$ lstopo --only core | wc -l
@@ -715,40 +785,6 @@ Note that `tioga20` and `rzadams1005` are both compute nodes!
 
 </details>
 
-#### Hands-on exercise D: Investigating AWS nodes with `--only`
-
-Use the commands
-
-```
-srun -t1 lstopo-no-graphics --only core | wc -l
-```
-and
-
-```
-srun -t1 lstopo-no-graphics --only PU | wc -l
-```
-
-to identify the number of cores and PUs on our AWS nodes. Do these nodes support Simultaneous Multi-Threading (SMT)? How many hardware threads exist per core?
-
-<details>
-<summary>
-
-Answer
-
-</summary>
-
-```
-[username2@ip-10-0-0-11 ~]$ srun -t1 lstopo-no-graphics --only core | wc -l
-48
-[username2@ip-10-0-0-11 ~]$ srun -t1 lstopo-no-graphics --only PU | wc -l
-96
-
-We have 48 cores and 96 PUs. Because we have 2x as many PUs as cores, these nodes
-do support SMT!
-
-```
-
-</details>
 
 
 ## Calculating CPU masks

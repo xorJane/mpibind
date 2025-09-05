@@ -1,4 +1,4 @@
-# Module 2: Computing architecture and topology
+<img width="1188" height="288" alt="image" src="https://github.com/user-attachments/assets/e0d761bd-7801-4d93-8e1b-5349d139140a" /># Module 2: Computing architecture and topology
 
 *Edgar A. León* and *Jane E. Herriman*<br>
 Lawrence Livermore National Laboratory
@@ -975,6 +975,60 @@ so on the login node, the mask for a 23rd core is misinterpreted!
 
 </details>
 
+#### Hands-on exercise J: Adding CPU masks together
+
+Say that you want to calculate the joint mask for a set of cores. You can list each of the cores explicitly using the syntax `NUMAnode:<#>.core:<#>` and pass these as inputs to `hwloc-calc`. You can also pass multiple masks for cores or sets of cores to `hwloc-calc`, which will add those masks together.
+
+Try the following:
+
+```
+hwloc-calc NUMAnode:0.core:1 NUMAnode:0.core:6
+```
+
+Then calculate the individual masks and add them together:
+
+```
+hwloc-calc NUMAnode:0.core:1
+hwloc-calc NUMAnode:0.core:6
+hwloc-calc <mask for core 1> <mask for core 6>
+```
+
+Do you get the same result with
+
+```
+hwloc-calc NUMAnode:0.core:1-6 ~NUMAnode:0.core:2-5
+```
+?
+
+<details>
+<summary>
+
+What this should look like
+
+</summary>
+
+These yield the same result:
+
+```
+[username2@ip-10-0-0-25 ~]$ hwloc-calc NUMAnode:0.core:1 NUMAnode:0.core:6
+0x00420042
+[username2@ip-10-0-0-25 ~]$ hwloc-calc NUMAnode:0.core:1-6 ~NUMAnode:0.core:2-5
+0x00420042
+```
+
+Separately grabbing and adding the masks for cores 1 and 6:
+
+```
+[username2@ip-10-0-0-25 ~]$ hwloc-calc NUMAnode:0.core:1
+0x00020002
+[username2@ip-10-0-0-25 ~]$ hwloc-calc NUMAnode:0.core:6
+0x00400040
+[username2@ip-10-0-0-25 ~]$ hwloc-calc 0x00020002 0x00400040
+0x00420042
+```
+
+</details>
+
 ## Binding to CPUs 
 
 `hwloc-bind` can be used to bind a task to a particular set of compute resources using the syntax `hwloc-bind <compute resources: keywords or mask> -- <command to run on these resources>`:
@@ -1043,7 +1097,54 @@ hwloc-bind NUMAnode:1 --membind NUMAnode:0 -- sh
 
 specifies that the task created by `sh` should be run on the compute resources of the 2nd NUMA domain, whereas it should use memory from the resources on the first NUMA domain.
 
-#### Hands-on exercise F: Determine the compute resources associated with a given task
+#### Hands-on exercise K: On AWS, get the compute resources for a given task
+
+On your AWS instance, run
+
+```
+hwloc-bind core:0 core:6 -- sh
+```
+
+to bind a process to cores 0 and 6,
+
+```
+hwloc-bind --get
+```
+
+to get the mask of the resources where the last process was bound, and
+
+```
+hwloc-calc <MASK> --intersect core
+```
+
+to confirm that process ran on the expected cores.
+
+<details>
+<summary>
+
+What this will look like
+
+</summary>
+
+```
+[user2@ip-10-0-0-141 topo-xml]$ hwloc-bind core:0 core:6 -- sh
+sh-4.2$ hwloc-bind --get
+0x00410041
+sh-4.2$ hwloc-calc 0x00410041 --intersect core
+0,6
+```
+
+Alternatively, you might do
+
+```
+[user2@ip-10-0-0-141 topo-xml]$ hwloc-bind core:0 core:6 -- sh
+sh-4.2$ hwloc-calc $(hwloc-bind --get) --intersect core
+0,6
+```
+
+</details>
+
+#### Hands-on exercise L: Determine the compute resources associated with a given task
 
 To *which cores* was the last task bound with `hwloc-bind`? Determine how we can specify cores to replace `<complete this with keyword args>` in the following:
 
@@ -1090,52 +1191,7 @@ janeh@rzadams1005:~$ hwloc-bind --get
 
 </details>
 
-#### Hands-on exercise G: On AWS, get the compute resources for a given task
 
-On your AWS instance, run
-
-```
-hwloc-bind core:0 core:6 -- sh
-```
-
-to bind a process to cores 0 and 6,
-
-```
-hwloc-bind --get
-```
-
-to get the mask of the resources where the last process was bound, and
-
-```
-hwloc-calc <MASK> --intersect core
-```
-
-to confirm that process ran on the expected cores.
-
-<details>
-<summary>
-
-What this will look like
-
-</summary>
-
-```
-[user2@ip-10-0-0-141 topo-xml]$ hwloc-bind core:0 core:6 -- sh
-sh-4.2$ hwloc-bind --get
-0x00410041
-sh-4.2$ hwloc-calc 0x00410041 --intersect core
-0,6
-```
-
-Alternatively, you might do
-
-```
-[user2@ip-10-0-0-141 topo-xml]$ hwloc-bind core:0 core:6 -- sh
-sh-4.2$ hwloc-calc $(hwloc-bind --get) --intersect core
-0,6
-```
-
-</details>
 
 ## Definitions
 
@@ -1342,7 +1398,7 @@ srun -t1 -N1 -n6 mpi
 
 asks for six tasks on a single node.
 
-Run `mpi` with 2 and then 3 tasks. How many CPUs are assigned to each task in each case? How does this number change as the number of tasks increases?
+Run `mpi` with 2 and then 3 tasks. How many CPUs are assigned to each task in each case? Does the number of CPUs per tasks change as the number of tasks increases?
 
 
 ## References

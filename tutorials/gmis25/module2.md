@@ -1328,6 +1328,69 @@ tioga12    Task   3/  4 running on 32 CPUs: 48-63,112-127
 
 </details>
 
+#### Hands-on exercise M: Try out `mpi` and `mpi+gpu`
+
+First, use `which` to see where we've installed the `mpi` and `mpi+gpu` binaries in your AWS environment:
+
+```
+which mpi
+which mpi+gpu
+```
+
+Next, look at the difference in output when you run either of these with a single task on a single node:
+
+```
+srun -N1 -n1 mpi
+srun -N1 -n1 mpi+gpu
+```
+
+<details>
+<summary>
+
+What you should see
+
+</summary>
+
+With `mpi` we see that all 96 cores on the node get assigned to the single task.
+
+The `mpi+gpu` also detects the node's 8 GPUs, all of which get assigned to the same task:
+
+```
+[username2@ip-10-0-0-13 scripts]$ srun -N1 -n1 mpi
+  0 gpu-st-g4dnmetal-1  96 CPUs: 0-95
+[username2@ip-10-0-0-13 scripts]$ srun -N1 -n1 mpi+gpu
+  0 gpu-st-g4dnmetal-1  96 CPUs: 0-95
+  0 gpu-st-g4dnmetal-1   8 GPUs: 0000:18:00.0 0000:19:00.0 0000:35:00.0 0000:36:00.0 0000:E7:00.0 0000:E8:00.0 0000:F4:00.0 0000:F5:00.0
+```
+
+</details>
+
+
+#### Hands-on exercise N: How do tasks spread across multiple nodes?
+
+When you run a single task on a single node, all cores share the same task.
+
+When you run two tasks across two nodes, does each task have access to both nodes, or does each task get its own node? Try
+
+```
+srun -N2 -n2 mpi
+```
+
+<details>
+<summary>
+Answer
+</summary>
+
+Each task gets its own node:
+
+```
+[username2@ip-10-0-0-13 scripts]$ srun -N2 -n2 mpi
+  0 gpu-st-g4dnmetal-1  96 CPUs: 0-95
+  1 gpu-st-g4dnmetal-2  96 CPUs: 0-95
+```
+
+</details>
+
 
 ##### Example 7
 

@@ -787,7 +787,9 @@ Note that `tioga20` and `rzadams1005` are both compute nodes!
 
 
 
-## Calculating CPU masks
+## Using hwloc-calc
+
+### hwloc-calc with --intersect
 
 Another tool provided by `hwloc` is `hwloc-calc`, which allows you to create CPU masks. (In case this is an unfamiliar term -- this is basically a hexadecimal string that can be interpreted as a list identifying particular CPUs.) These masks can then be used as inputs to another `hwloc` function, `hwloc-bind`, as we'll see below.
 
@@ -812,6 +814,71 @@ janeh@tioga20:~$ hwloc-calc NUMAnode:0.core:8 --intersect PU --physical
 8,72
 ```
 
+#### Hands-on exercise G: Determine the cores on a given NUMAnode (AWS)
+
+Run the following to see the list of cores on the AWS login node:
+
+```
+hwloc-calc NUMAnode:0 --intersect core
+```
+
+and run these to see how many are on the compute node, spread across two NUMAnodes:
+
+```
+srun hwloc-calc NUMAnode:0 --intersect core
+srun hwloc-calc NUMAnode:1 --intersect core
+```
+
+<details>
+<summary>
+
+Expected output
+
+</summary>
+
+```
+$ hwloc-calc NUMAnode:0 --intersect core
+0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15
+$ srun hwloc-calc NUMAnode:0 --intersect core
+0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23
+$ srun hwloc-calc NUMAnode:1 --intersect core
+24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47
+```
+
+</details>
+
+#### Hands-on exercise H: Determine the PUs associated with a given core (synthetic topologies)
+
+Using `hwloc-calc` with the flag `-i` to specify the RZAdams input file, determine the PUs associated with core 4 on NUMAnode 1 of a `RZAdams` node.
+
+<details>
+<summary>
+
+Hint
+
+</summary>
+
+```
+hwloc-calc -i /home/tutorial/topo-xml/rzadams.xml <specify core 4 here> --intersect <what are you trying to determine on core 4?>
+```
+
+</details>
+
+<details>
+<summary>
+
+Answer
+
+</summary>
+
+```
+$ hwloc-calc -i /home/tutorial/topo-xml/rzadams.xml NUMA:1.core:4 --intersect PU
+56,57
+```
+
+</details>
+
+### Calculating CPU masks
 
 If we drop the `--intersect` flag and instead simply run `hwloc-calc <compute resource>:<index>.<compute resource>.<index>`, we'll get a CPU mask in hexadecimal:
 
@@ -858,22 +925,26 @@ janeh@tioga22:~$ hwloc-calc NUMAnode:0 --taskset
 
 The default mask format is specific to `hwloc`, whereas `--taskset` displays the mask in the format recognized by the taskset command-line program (an alternative command line tool for binding).
 
-#### Hands-on exercise E: Determine the PUs associated with a given core
+#### Hands-on exercise I: Calculating CPU masks on AWS
 
-Using `hwloc-calc` with the flag `-i` to specify an input file, determine the PUs associated with core 4 on the second NUMA domain of a `RZAdams` node.
-
-<details>
-<summary>
-
-Hint
-
-</summary>
+Start with a simple command to calculate the CPU mask for core 23 on NUMAnode 0 of an AWS compute node:
 
 ```
-hwloc-calc -i /home/tutorial/topo-xml/rzadams.xml <specify core 4 here> --intersect <what are you trying to determine on core 4?>
+srun hwloc-calc NUMAnode:0.core:23
 ```
 
-</details>
+Using the CPU mask you get as output, you can use the intersect flag to sanity check you got what you expected:
+
+```
+srun hwloc-calc <CPU mask> --intersect core
+```
+
+What do you see if you remove `srun` and instead run
+
+```
+hwloc-calc <CPU mask> --intersect core
+```
+?
 
 <details>
 <summary>
@@ -882,10 +953,25 @@ Answer
 
 </summary>
 
+Below is the output you should see. Note that when you try to investigate the compute node's mask for core 23 on a login node, you get an unexpected result (core 7):
+
 ```
-$ hwloc-calc -i /home/tutorial/topo-xml/rzadams.xml NUMA:1.core:4 --intersect PU
-56,57
+[username2@ip-10-0-0-13 scripts]$ srun hwloc-calc NUMAnode:0.core:23
+0x00000080,,0x00800000
+[username2@ip-10-0-0-13 scripts]$ srun hwloc-calc 0x00000080,,0x00800000 --intersect core
+23
+[username2@ip-10-0-0-13 scripts]$ hwloc-calc 0x00000080,,0x00800000 --intersect core
+7
 ```
+
+There are only 16 cores on the login node
+
+```
+[username2@ip-10-0-0-13 scripts]$ hwloc-calc NUMAnode:0 --intersect core
+0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15
+```
+
+so on the login node, the mask for a 23rd core is misinterpreted!
 
 </details>
 

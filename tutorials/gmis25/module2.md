@@ -1,4 +1,4 @@
-<img width="1188" height="288" alt="image" src="https://github.com/user-attachments/assets/e0d761bd-7801-4d93-8e1b-5349d139140a" /># Module 2: Computing architecture and topology
+# Module 2: Computing architecture and topology
 
 *Edgar A. León* and *Jane E. Herriman*<br>
 Lawrence Livermore National Laboratory

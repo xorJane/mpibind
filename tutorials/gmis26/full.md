@@ -1,4 +1,5 @@
-# Supercomputing Foundations (6.5-Hour Workshop)
+# Supercomputing Foundations: Extended Edition
+<!-- 6.5 hours -->
 
 *Edgar A. León*, Lawrence Livermore National Laboratory<br>
 *Suzanne Parete-Koon*, Oak Ridge National Laboratory<br>
@@ -8,15 +9,19 @@
 
 ## Description
 
-This workshop provides an interactive introduction to High-Performance Computing (HPC), focusing on foundational concepts, practical applications, and hands-on exercises. Attendees will explore the basics of supercomputers, learn essential Linux skills, and gain experience with parallel programming using MPI. Through guided exercises, participants will build and run serial and parallel programs, analyze differences in execution, understand how to manage jobs in an HPC environment, and apply these skills to a real-world AI and data analytics workflow.
+This workshop provides an interactive introduction to High-Performance Computing (HPC), combining foundational concepts with hands-on experience in parallel programming, hardware-aware application execution, and AI-enabled scientific data analysis.
+Attendees will explore the basics of supercomputers, learn essential Linux skills, and gain experience with parallel programming using MPI. Through guided exercises, participants will build and run serial and parallel programs, analyze differences in execution, understand how to manage jobs in an HPC environment, and apply these skills to a real-world AI and data analytics workflow.
 
 The workshop also introduces modern compute node architecture and topology. Participants will learn how processors, memory, GPUs, and high-speed interconnects are organized within HPC systems, and how application performance depends on effectively mapping computational workloads to available hardware resources. Using tools such as `hwloc`, attendees will explore concepts including hardware locality, processor affinity, NUMA memories, and resource discovery.
 
-Building on this foundation, participants will learn techniques for launching and mapping parallel applications using Slurm, including constructing CPU affinities and assigning GPUs to MPI processes. The workshop emphasizes practical strategies for improving application performance through efficient resource placement and minimizing unnecessary communication and data movement.
+Building on this foundation, participants will learn techniques for launching and mapping parallel applications using Slurm, including constructing CPU affinities and assigning GPUs to MPI processes. The workshop emphasizes practical strategies for improving application performance through efficient resource placement and minimizing unnecessary data movement.
+These concepts provide the foundation for understanding not only how to write parallel programs, but also how to execute them efficiently on modern supercomputers.
 
-The workshop includes a hands-on module that demonstrates how HPC enables modern data science and artificial intelligence. Participants will work with real-world power outage data collected through the U.S. Department of Energy's EAGLE-I system, operated by Oak Ridge National Laboratory. Using parallel data processing with MPI, attendees will prepare and analyze a large dataset, visualize outage patterns, and apply the K-means clustering algorithm to identify similarities across geographic regions and seasons. By interpreting these clusters and relating them to seasonal weather trends, participants will develop hypotheses about the underlying causes of outages while gaining experience applying machine learning techniques to a real scientific dataset.
+The workshop includes a hands-on module that demonstrates how HPC enables modern data science via machine learning and AI. Participants will work with real-world power outage data collected through the U.S. Department of Energy's EAGLE-I system, operated by Oak Ridge National Laboratory. Using parallel data processing with MPI, attendees will prepare and analyze a large dataset, visualize outage patterns, and apply the K-means clustering algorithm to identify similarities across geographic regions and seasons. By interpreting these clusters and relating them to seasonal weather trends, participants will develop hypotheses about the underlying causes of outages while gaining experience applying machine learning techniques to a real scientific dataset.
 
-Hands-on exercises are conducted on an HPC cluster, providing participants with practical experience using real HPC systems throughout the workshop. By the end of the workshop, attendees will understand the fundamentals of HPC, parallel programming, hardware-aware application execution, and how these technologies support modern scientific computing, data analytics, and AI applications.
+Hands-on exercises are conducted on a supercomputer, providing participants with practical experience using real HPC systems throughout the workshop.
+By the end of the workshop, attendees will understand the fundamentals of HPC, parallel programming, hardware topology, resource affinity, and locality-aware application execution, as well as how these technologies enable modern scientific computing, machine learning, and data analytics. 
+
 
 ## Learning Objectives
 
@@ -34,10 +39,10 @@ By the end of this workshop, participants will be able to:
 
 ## Audience and Requirements 
 
-Ideal for students and early-career researchers seeking an introduction to HPC and its growing role in scientific computing, data science, and artificial intelligence.
+Designed for undergraduate students, graduate students, faculty, and researchers seeking an introduction to HPC and its growing role in scientific computing and data science.
 
 Attendees will need a laptop equipped with Wi-Fi, a shell terminal,
-  and the ssh program. Users will be provided accounts
+  and the `ssh` program. Users will be provided accounts
   to access a cluster environment required for
   demonstrations and hands-on exercises.
 
@@ -60,15 +65,18 @@ Attendees will need a laptop equipped with Wi-Fi, a shell terminal,
 | Begin | End | Topic |
 |-:|-:|:-|
 | 08:00 | 08:15 | Paperwork | 
-| 08:30 | 08:45 | Introduction to Supercomputing |
-| 08:45 | 09:30 | Module 1: Linux Basics | 
-| 09:30 | 10:30 | Module 2: Parallel Computing with MPI |
-| *10:30* | *10:45* | *Break* |
-| 10:45 | 12:15 | Module 3: AI-Enabled Scientific Data Analysis |
-| *12:15* | *12:45* | *Lunch* |
+| 08:15 | 08:30 | Introduction to Supercomputing |
+| 08:30 | 09:30 | Module 1: Linux Basics | 
+| 09:30 | 10:00 | Module 2: Parallel Computing with MPI |
+| *10:00* | *10:15* | *Break* |
+| 10:15 | 10:45 | Module 2: Continued | 
+| 10:45 | 11:30 | Module 3: AI-Enabled Scientific Data Analysis |
+| *11:30* | *12:00* | *Lunch* |
+| 12:00 | 12:45 | Module 3: Continued |
 | 12:45 | 13:45 | Module 4: Computing Architecture and Topology |
-| *13:45* | *14:00* | *Break* |
-| 14:00 | 15:00 | Module 5: Hardware Affinity for Applications |
+| 13:45 | 14:00 | Module 5: Hardware Affinity for Applications |
+| *14:00* | *14:15* | *Break* |
+| 14:15 | 15:00 | Module 5: Continued |
 
 </center>
 
@@ -114,13 +122,13 @@ srun -N1 -n1 mpi
 
    Using MPI, attendees will preprocess and organize a large dataset before applying visualization techniques and the K-means clustering algorithm to identify patterns in outage behavior across regions and seasons. Participants will interpret the resulting clusters, formulate hypotheses about the environmental and seasonal factors influencing power outages, and explore how computational methods support energy resilience and disaster response.
 
-   This module demonstrates how HPC, parallel programming, and machine learning complement one another to solve large-scale scientific and engineering problems.
+   This module demonstrates how HPC, parallel programming, and machine learning complement one another to solve scientific and engineering problems.
 
 1. [Computing Architecture and Topology](module2.md).<br>
 *Learn how HPC hardware is organized.*
 
    Learn how to identify the compute and memory components of a
-   compute node using hwloc. A precise understanding of the hardware
+   compute node using `hwloc`. A precise understanding of the hardware
    resources is needed to map an application to the machine
    efficiently. This includes identifying the node's GPUs, cores,
    hardware threads, cache hierarchy, NUMA domains, and network

@@ -99,7 +99,7 @@ In general, cache levels are denoted as `L<N>` where `<N>` denotes the cache lev
 
 In this example cache layout, there are three levels of cache -- `L1`, `L2`, and `L3`. Each core has its own `L1` cache, every two cores share a `L2` cache, and sets of six cores each have a `L3` cache.
 
-Throughout this tutorial, we'll be talking about "locality" and compute resources that are "local" to one another. For example, we might say that a given pair of resources "are local to one another". "Being local" means being on the same NUMA domain -- even if cache is not shared.
+Throughout this tutorial, we'll be talking about "locality" and compute resources that are "local" to one another. For example, we might say that a given pair of resources "are local to one another". In this tutorial, when we say resources are local, that usually means those resources share the same NUMA domain. Resources can also be local in a stricter sense, i.e. by sharing L3 or L2 cache.
 
 #### Comprehension question 2 
 

@@ -99,7 +99,7 @@ In general, cache levels are denoted as `L<N>` where `<N>` denotes the cache lev
 
 In this example cache layout, there are three levels of cache -- `L1`, `L2`, and `L3`. Each core has its own `L1` cache, every two cores share a `L2` cache, and sets of six cores each have a `L3` cache.
 
-Throughout this tutorial, we'll be talking about "locality" and compute resources that are "local" to one another. For example, we might say that a given pair of resources "are local to one another". "Being local" means being on the same NUMA domain -- even if cache is not shared.
+Throughout this tutorial, we'll be talking about "locality" and compute resources that are "local" to one another. For example, we might say that a given pair of resources "are local to one another". In this tutorial, when we say resources are local, that usually means those resources share the same NUMA domain. Resources can also be local in a stricter sense, i.e. by sharing L3 or L2 cache.
 
 #### Comprehension question 2 
 
@@ -511,7 +511,7 @@ Let's use `lstopo` again to compare a Frontier login node with a Frontier comput
 lstopo
 ```
 
-When you run `lstopo`, you're investigating the hardware of the login node -- the node you see immediately after logging in. The login node is not representative of the compute nodes used for jobs. To see the topology of a compute node, use the following command from an allocation:
+When you run `lstopo`, you're investigating the hardware of the login node -- the node you see immediately after logging in. The login node is not necessarily representative of the compute nodes used for jobs. To see the topology of a compute node, use the following command from an allocation:
 
 ```
 srun -N 1 -t 1 lstopo
@@ -519,7 +519,7 @@ srun -N 1 -t 1 lstopo
 
 When you precede a command with `srun`, you're launching it on the resources assigned to your job allocation.
 
-The output from `srun -N 1 -t 1 lstopo` should be different than `lstopo` because the nodes have different hardware. Identify at least one way the features of the node described by `lstopo`'s output differ from those described by `srun -N 1 -t 1 lstopo`.
+The output from `srun -N 1 -t 1 lstopo` may be different than `lstopo` because the nodes can have different hardware. Identify at least one way the features of the node described by `lstopo`'s output differ from those described by `srun -N 1 -t 1 lstopo`.
 
 **What you should see**
 
@@ -1062,7 +1062,7 @@ $ lstopo --merge
 $ lstopo --no-useless-caches --no-io
 ```
 
-<img src="../figures/tioga/tioga-no-cache-io.png" width="750"/>
+<img src="../figures/tioga/tioga-no-cache-io.png" width="520"/>
 
 
 The flag `--only <type>` causes the topology of only `type` devices to be described:
@@ -1192,7 +1192,7 @@ janeh@tioga20:~$ lstopo-no-graphics --no-useless-caches
 janeh@tioga20:~$ lstopo --no-useless-caches --no-io --physical
 ```
 
-<img src="../figures/tioga/tioga-no-cache-io-physical.png" width="750"/>
+<img src="../figures/tioga/tioga-no-cache-io-physical.png" width="520"/>
 
 #### Hands-on exercise D: Investigating Frontier nodes with `--only`
 
@@ -1431,7 +1431,36 @@ Expected output
 
 </details>
 
-Notice that the login node and compute node expose different numbers of cores on NUMA domain 0.
+Remember that the login node and compute node expose different numbers of cores on NUMA domain 0.
+
+**Bonus**: Can you use the `--physical` flag to see which 8 cores are reserved for system use on a Frontier compute node?
+<details>
+<summary>
+		
+Hint: There are two L3 cache per NUMA node, numbered 0 to 7. 
+Use `hwloc-calc L3:7 --intersect core --physical` to show cores for the second L3 cache on NUMANode:3.
+
+</summary>
+
+The first core of each L3 cache is reserved for system use on a compute node. (Cores 0, 8, 16, 24, 32, 40, 48, and 56.) These are the cores that missing when you use `--physical` on a compute node. They are visible on a login node.
+
+For example,
+```
+[user@login09.frontier ~]$ hwloc-calc L3:7 --intersect core --physical
+56,57,58,59,60,61,62,63
+[user@login09.frontier ~]$ srun -N1 -t1 hwloc-calc L3:7 --intersect core --physical
+srun: job 5351257 queued and waiting for resources
+srun: job 5351257 has been allocated resources
+57,58,59,60,61,62,63
+[user@login09.frontier ~]$ hwloc-calc L3:6 --intersect core --physical
+48,49,50,51,52,53,54,55
+[user@login09.frontier ~]$ srun -N1 -t1 hwloc-calc L3:6 --intersect core --physical
+srun: job 5351263 queued and waiting for resources
+srun: job 5351263 has been allocated resources
+49,50,51,52,53,54,55
+```
+	
+</details>
 
 #### Hands-on exercise H: Determine the PUs associated with a given core (synthetic topologies)
 
@@ -1490,6 +1519,25 @@ Note that particular resources can be excluded from the mask calculated by using
 janeh@tioga22:~$ hwloc-calc NUMAnode:0 ~NUMAnode:0.core:0-2
 0x0000fff8,,0x0000fff8
 ```
+
+**Comprehension check 4**
+
+Which of these things is not like the others (and produces a different result) on a Frontier login node?
+
+1) hwloc-calc NUMAnode:0.core:0-3 NUMAnode:0.core:5-15
+2) hwloc-calc NUMAnode:0 NUMAnode:0.core:4
+3) hwloc-calc NUMAnode:0.core:0-15 ~NUMAnode:0.core:4
+4) hwloc-calc NUMAnode:0 ~NUMAnode:0.core:4
+
+<details>
+<summary>
+	Answer:
+</summary>
+	Option 2.
+	All other options include all core on `NUMAnode:0` except for `core:4`.
+	Option 1 adds together two ranges to get there; options 3 & 4 explicitly exclude `core:4` from the range with `~`. Option 2 would include all cores on `NUMAnode:0`.
+</details>
+
 
 The `--hierarchical` flag can be used to print expanded info about the NUMA domains, cores, and PUs associated with a particular set of compute resources, expressed either with keywords or with a CPU mask. For example, here is expanded info about the PUs on the 2nd and 3rd core of the 1st NUMA domain:
 
@@ -1944,6 +1992,8 @@ srun -N 1 -t 1 -n 1 mpi
 srun -N 1 -t 1 -n 1 mpi+gpu
 ```
 
+How do results change if you add the flag `-c 3`?
+
 <details>
 <summary>
 
@@ -1963,6 +2013,15 @@ The `mpi+gpu` binary also reports the GPUs visible to the task. With a single ta
 ...
   0 frontier01651   1 CPUs: 1
   0 frontier01651   8 GPUs: 0000:c1:00.0 0000:c6:00.0 0000:c9:00.0 0000:ce:00.0 0000:d1:00.0 0000:d6:00.0 0000:d9:00.0 0000:de:00.0
+```
+
+When you add the `-c 3` flag alongside either `mpi` or `mpi+gpu`, 3 cores are now assigned to each task, instead of the default of a single core per task:
+
+```
+[user@login09.frontier ~]$ srun -N 2 -t 1 -n 2 -c 3 mpi
+(...)
+  1 frontier08112   3 CPUs: 1-3
+  0 frontier08111   3 CPUs: 1-3
 ```
 
 </details>
@@ -2034,14 +2093,43 @@ https://github.com/LLNL/mpibind/tree/master/affinity
 Use `hwloc` and `/lustre/orion/gen007/world-shared/gmis-wshop/topo-xml/rzadams.xml` to explore `RZAdams`' MI300A topology. In particular,
 
 1. How many cores per `L3` cache does `RZAdams` have?
-2. How many GPUs per `L3` cache?
+2. How many `L3` cache per `NUMAnode`?
 3. How many `L2` caches per node?
+
+<details>
+<summary>
+
+What to run
+
+</summary>
+
+```
+hwloc-calc -i /lustre/orion/gen007/world-shared/gmis-wshop/topo-xml/rzadams.xml L3:0 --intersect core
+hwloc-calc -i /lustre/orion/gen007/world-shared/gmis-wshop/topo-xml/rzadams.xml NUMAnode:0 --intersect L3
+hwloc-calc -i /lustre/orion/gen007/world-shared/gmis-wshop/topo-xml/rzadams.xml NUMAnode:0-3 --intersect L2
+```
+</details>
 
 ### 2. Describe the memory hierarchy of a Frontier compute node
 
 Use `hwloc` functions to determine how many cores there are per NUMA, per `L3` cache, and per `L2` cache on a Frontier compute node.
 
 Afterwards, you can check yourself with [this picture of a Frontier node](../figures/frontier-node-topology.svg).
+
+<details>
+<summary>
+
+What to run
+	
+</summary>
+
+```
+hwloc-calc NUMAnode:0 --intersect core
+hwloc-calc L3:0 --intersect core
+hwloc-calc L2:0 --intersect core
+```
+
+</details>
 
 ### 3. Identify the GPUs local to a given NUMA domain.
 

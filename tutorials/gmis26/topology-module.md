@@ -1520,6 +1520,25 @@ janeh@tioga22:~$ hwloc-calc NUMAnode:0 ~NUMAnode:0.core:0-2
 0x0000fff8,,0x0000fff8
 ```
 
+**Comprehension check 4**
+
+Which of these things is not like the others (and produces a different result) on a Frontier login node?
+
+1) hwloc-calc NUMAnode:0.core:0-3 NUMAnode:0.core:5-15
+2) hwloc-calc NUMAnode:0 NUMAnode:0.core:4
+3) hwloc-calc NUMAnode:0.core:0-15 ~NUMAnode:0.core:4
+4) hwloc-calc NUMAnode:0 ~NUMAnode:0.core:4
+
+<details>
+<summary>
+	Answer:
+</summary>
+	Option 2.
+	All other options include all core on `NUMAnode:0` except for `core:4`.
+	Option 1 adds together two ranges to get there; options 3 & 4 explicitly exclude `core:4` from the range with `~`. Option 2 would include all cores on `NUMAnode:0`.
+</details>
+
+
 The `--hierarchical` flag can be used to print expanded info about the NUMA domains, cores, and PUs associated with a particular set of compute resources, expressed either with keywords or with a CPU mask. For example, here is expanded info about the PUs on the 2nd and 3rd core of the 1st NUMA domain:
 
 ```

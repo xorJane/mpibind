@@ -511,7 +511,7 @@ Let's use `lstopo` again to compare a Frontier login node with a Frontier comput
 lstopo
 ```
 
-When you run `lstopo`, you're investigating the hardware of the login node -- the node you see immediately after logging in. The login node is not representative of the compute nodes used for jobs. To see the topology of a compute node, use the following command from an allocation:
+When you run `lstopo`, you're investigating the hardware of the login node -- the node you see immediately after logging in. The login node is not necessarily representative of the compute nodes used for jobs. To see the topology of a compute node, use the following command from an allocation:
 
 ```
 srun -N 1 -t 1 lstopo
@@ -519,7 +519,7 @@ srun -N 1 -t 1 lstopo
 
 When you precede a command with `srun`, you're launching it on the resources assigned to your job allocation.
 
-The output from `srun -N 1 -t 1 lstopo` should be different than `lstopo` because the nodes have different hardware. Identify at least one way the features of the node described by `lstopo`'s output differ from those described by `srun -N 1 -t 1 lstopo`.
+The output from `srun -N 1 -t 1 lstopo` may be different than `lstopo` because the nodes can have different hardware. Identify at least one way the features of the node described by `lstopo`'s output differ from those described by `srun -N 1 -t 1 lstopo`.
 
 **What you should see**
 
@@ -1062,7 +1062,7 @@ $ lstopo --merge
 $ lstopo --no-useless-caches --no-io
 ```
 
-<img src="../figures/tioga/tioga-no-cache-io.png" width="750"/>
+<img src="../figures/tioga/tioga-no-cache-io.png" width="520"/>
 
 
 The flag `--only <type>` causes the topology of only `type` devices to be described:
@@ -1192,7 +1192,7 @@ janeh@tioga20:~$ lstopo-no-graphics --no-useless-caches
 janeh@tioga20:~$ lstopo --no-useless-caches --no-io --physical
 ```
 
-<img src="../figures/tioga/tioga-no-cache-io-physical.png" width="750"/>
+<img src="../figures/tioga/tioga-no-cache-io-physical.png" width="520"/>
 
 #### Hands-on exercise D: Investigating Frontier nodes with `--only`
 

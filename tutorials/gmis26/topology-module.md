@@ -1431,7 +1431,36 @@ Expected output
 
 </details>
 
-Notice that the login node and compute node expose different numbers of cores on NUMA domain 0.
+Remember that the login node and compute node expose different numbers of cores on NUMA domain 0.
+
+**Bonus**: Can you use the `--physical` flag to see which 8 cores are reserved for system use on a Frontier compute node?
+<details>
+<summary>
+		
+Hint: There are two L3 cache per NUMA node, numbered 0 to 7. 
+Use `hwloc-calc L3:7 --intersect core --physical` shows cores for the second L3 cache on NUMANode:3.
+
+</summary>
+
+The first core of each L3 cache is reserved for system use on a compute node. (Cores 0, 8, 16, 24, 32, 40, 48, and 56.) These are the cores that missing when you use `--physical` on a compute node. They are visible on a login node.
+
+For example,
+```
+[xorjane@login09.frontier gmis-wshop]$ hwloc-calc L3:7 --intersect core --physical
+56,57,58,59,60,61,62,63
+[xorjane@login09.frontier gmis-wshop]$ srun -N1 -t1 hwloc-calc L3:7 --intersect core --physical
+srun: job 5351257 queued and waiting for resources
+srun: job 5351257 has been allocated resources
+57,58,59,60,61,62,63
+[xorjane@login09.frontier gmis-wshop]$ hwloc-calc L3:6 --intersect core --physical
+48,49,50,51,52,53,54,55
+[xorjane@login09.frontier gmis-wshop]$ srun -N1 -t1 hwloc-calc L3:6 --intersect core --physical
+srun: job 5351263 queued and waiting for resources
+srun: job 5351263 has been allocated resources
+49,50,51,52,53,54,55
+```
+	
+</details>
 
 #### Hands-on exercise H: Determine the PUs associated with a given core (synthetic topologies)
 

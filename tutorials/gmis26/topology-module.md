@@ -1992,6 +1992,8 @@ srun -N 1 -t 1 -n 1 mpi
 srun -N 1 -t 1 -n 1 mpi+gpu
 ```
 
+How do results change if you add the flag `-c 3`?
+
 <details>
 <summary>
 
@@ -2011,6 +2013,15 @@ The `mpi+gpu` binary also reports the GPUs visible to the task. With a single ta
 ...
   0 frontier01651   1 CPUs: 1
   0 frontier01651   8 GPUs: 0000:c1:00.0 0000:c6:00.0 0000:c9:00.0 0000:ce:00.0 0000:d1:00.0 0000:d6:00.0 0000:d9:00.0 0000:de:00.0
+```
+
+When you add the `-c 3` flag alongside either `mpi` or `mpi+gpu`, 3 cores are now assigned to each task, instead of the default of a single core per task:
+
+```
+[user@login09.frontier ~]$ srun -N 2 -t 1 -n 2 -c 3 mpi
+(...)
+  1 frontier08112   3 CPUs: 1-3
+  0 frontier08111   3 CPUs: 1-3
 ```
 
 </details>
@@ -2082,14 +2093,43 @@ https://github.com/LLNL/mpibind/tree/master/affinity
 Use `hwloc` and `/lustre/orion/gen007/world-shared/gmis-wshop/topo-xml/rzadams.xml` to explore `RZAdams`' MI300A topology. In particular,
 
 1. How many cores per `L3` cache does `RZAdams` have?
-2. How many GPUs per `L3` cache?
+2. How many `L3` cache per `NUMAnode`?
 3. How many `L2` caches per node?
+
+<details>
+<summary>
+
+What to run
+
+</summary>
+
+```
+hwloc-calc -i /lustre/orion/gen007/world-shared/gmis-wshop/topo-xml/rzadams.xml L3:0 --intersect core
+hwloc-calc -i /lustre/orion/gen007/world-shared/gmis-wshop/topo-xml/rzadams.xml NUMAnode:0 --intersect L3
+hwloc-calc -i /lustre/orion/gen007/world-shared/gmis-wshop/topo-xml/rzadams.xml NUMAnode:0-3 --intersect L2
+```
+</details>
 
 ### 2. Describe the memory hierarchy of a Frontier compute node
 
 Use `hwloc` functions to determine how many cores there are per NUMA, per `L3` cache, and per `L2` cache on a Frontier compute node.
 
 Afterwards, you can check yourself with [this picture of a Frontier node](../figures/frontier-node-topology.svg).
+
+<details>
+<summary>
+
+What to run
+	
+</summary>
+
+```
+hwloc-calc NUMAnode:0 --intersect core
+hwloc-calc L3:0 --intersect core
+hwloc-calc L2:0 --intersect core
+```
+
+</details>
 
 ### 3. Identify the GPUs local to a given NUMA domain.
 
